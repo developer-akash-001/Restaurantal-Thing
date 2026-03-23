@@ -1,4 +1,4 @@
-package com.example.Food.Application.Backend;
+package com.example.FoodApplicationBackend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

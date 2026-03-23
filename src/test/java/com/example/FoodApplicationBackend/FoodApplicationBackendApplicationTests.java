@@ -1,4 +1,4 @@
-package com.example.Food.Application.Backend;
+package com.example.FoodApplicationBackend;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
