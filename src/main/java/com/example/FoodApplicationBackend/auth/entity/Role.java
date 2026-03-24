@@ -1,4 +1,6 @@
 package com.example.FoodApplicationBackend.auth.entity;
 
-public class Role {
+public enum Role {
+    OWNER,
+    CUSTOMER
 }
