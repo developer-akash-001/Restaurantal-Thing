@@ -1,48 +1,41 @@
 package com.example.FoodApplicationBackend.auth.service;
 
-import com.example.FoodApplicationBackend.auth.config.JwtUtil;
-import com.example.FoodApplicationBackend.auth.dto.LoginRequest;
-import com.example.FoodApplicationBackend.auth.dto.OtpVerifyRequest;
-import com.example.FoodApplicationBackend.auth.dto.RegisterRequest;
-import com.example.FoodApplicationBackend.auth.entity.User;
-import com.example.FoodApplicationBackend.auth.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
+import com.example.FoodApplicationBackend.auth.dto.*;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+
 @Service
-@RequiredArgsConstructor
 public class AuthService {
 
-    private final OtpService otpService;
-    private final UserRepository userRepository;  // ✅ FIXED
-    private final JwtUtil jwtUtil;
+    private final Map<String, String> otpStore = new HashMap<>();
+    private final Map<String, RegisterRequest> userStore = new HashMap<>();
 
-    public void register(RegisterRequest request){
-        User user = new User();
-        user.setUsername(request.getName());
-        user.setMobile(request.getMobile());
-        user.setRole(request.getRole());
-        user.setVerified(false);
-
-        userRepository.save(user);   // ✅ WORKING
+    // Register user
+    public void register(RegisterRequest request) {
+        userStore.put(request.getMobile(), request);
     }
 
-    public void sendOtp(LoginRequest request){
-        otpService.generateOtp(request.getMobile());
+    // Send OTP
+    public void sendOtp(LoginRequest request) {
+        if (!userStore.containsKey(request.getMobile())) {
+            throw new RuntimeException("User not registered");
+        }
+        String otp = String.valueOf(new Random().nextInt(899999) + 100000); // 6-digit OTP
+        otpStore.put(request.getMobile(), otp);
+        System.out.println("OTP for " + request.getMobile() + " is " + otp);
     }
 
-    public String verifyOtp(OtpVerifyRequest request){
-
-        User user = userRepository.findByMobile(request.getMobile())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if(!otpService.verifyOtp(request.getMobile(), request.getOtp())){
+    // Verify OTP
+    public String verifyOtp(OtpVerifyRequest request) {
+        String otp = otpStore.get(request.getMobile());
+        if (otp == null || !otp.equals(request.getOtp())) {
             throw new RuntimeException("Invalid OTP");
         }
-
-        user.setVerified(true);
-        userRepository.save(user);
-
-        return jwtUtil.generateToken(user.getMobile(), user.getRole().name());
+        otpStore.remove(request.getMobile());
+        // generate fake token
+        return "token_" + request.getMobile();
     }
 }
